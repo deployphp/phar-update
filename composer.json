@@ -1,7 +1,7 @@
 {
     "type": "library",
     "name": "kherge/amend",
-    "description": "A tool to simplify updating PHAR applications.",
+    "description": "A Symfony Console component helper and command set for updating and upgrading applications.",
     "homepage": "http://github.com/kherge/Amend",
     "license": "MIT",
     "authors": [
