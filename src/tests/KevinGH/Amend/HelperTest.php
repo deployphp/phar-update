@@ -85,12 +85,20 @@
 
         public function testGetFile()
         {
-            $file = $this->file(rand());
+            $file = $this->file($rand = rand());
 
             $temp = $this->helper->getFile(array(
                 'html_url' => $file,
                 'name' => 'other-test'
             ), 'test');
+
+            $this->helper->setIntegrityChecker(function ($temp) use ($rand)
+            {
+                if ($rand != file_get_contents($temp))
+                {
+                    return false;
+                }
+            });
 
             $this->assertFileEquals($file, $temp);
         }
@@ -205,6 +213,25 @@
             $this->restore('fwrite');
 
             if (isset($e)) throw $e;
+        }
+
+        /**
+         * @expectedException RuntimeException
+         * @expectedExceptionMessage The downloaded update
+         */
+        public function testGetFileIntegrityFail()
+        {
+            $file = $this->file($rand = rand());
+
+            $this->helper->setIntegrityChecker(function ($temp) use ($rand)
+            {
+                return false;
+            });
+
+            $temp = $this->helper->getFile(array(
+                'html_url' => $file,
+                'name' => 'other-test'
+            ), 'test');
         }
 
         public function testGetLatest()
@@ -364,6 +391,24 @@
         public function testSetExtractorInvalid()
         {
             $this->helper->setExtractor(123);
+        }
+
+        public function testSetIntegrityChecker()
+        {
+            $this->helper->setIntegrityChecker($expected = array(__CLASS__, __METHOD__));
+
+            $property = $this->property($this->helper, 'integrity');
+
+            $this->assertEquals($expected, $property());
+        }
+
+        /**
+         * @expectedException InvalidArgumentException
+         * @expectedExceptionMessage The integrity checker is not callable.
+         */
+        public function testSetIntegrityCheckerInvalid()
+        {
+            $this->helper->setIntegrityChecker(123);
         }
 
         public function testSetLock()

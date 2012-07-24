@@ -58,6 +58,13 @@
         private $extract;
 
         /**
+         * The download integrity checker.
+         *
+         * @type callable
+         */
+        private $integrity;
+
+        /**
          * The major version lock state.
          *
          * @type boolean
@@ -194,6 +201,14 @@
             fclose($out);
             fclose($in);
 
+            if ($this->integrity && (false === call_user_func($this->integrity, $temp)))
+            {
+                throw new RuntimeException(sprintf(
+                    'The downloaded update "%s" failed the integrity check.',
+                    $temp
+                ));
+            }
+
             return $temp;
         }
 
@@ -318,7 +333,7 @@
         /**
          * Sets the download version extractor callable.
          *
-         * @throws InvalidArgumentException
+         * @throws InvalidArgumentException If it is not a callable.
          * @param callable $extract The exctractor.
          */
         public function setExtractor($extract)
@@ -329,6 +344,22 @@
             }
 
             $this->extract = $extract;
+        }
+
+        /**
+         * Sets the download integrity checker callable.
+         *
+         * @throws InvalidArgumentException If it is not a callable.
+         * @param callable $integrity The integrity checker.
+         */
+        public function setIntegrityChecker($integrity)
+        {
+            if (false === is_callable($integrity))
+            {
+                throw new InvalidArgumentException('The integrity checker is not callable.');
+            }
+
+            $this->integrity = $integrity;
         }
 
         /**
@@ -344,7 +375,7 @@
         /**
          * Sets the download matcher callable.
          *
-         * @throws InvalidArgumentException
+         * @throws InvalidArgumentException If it is not a callable.
          * @param callable $match The matcher.
          */
         public function setMatcher($match)
