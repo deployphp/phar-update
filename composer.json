@@ -1,0 +1,40 @@
+{
+    "type": "library",
+    "name": "kherge/amend",
+    "description": "A tool to simplify updating PHAR applications.",
+    "homepage": "http://github.com/kherge/Amend",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Kevin Herrera",
+            "email": "me@kevingh.com"
+        }
+    ],
+
+    "require": {
+        "php": ">=5.3.3",
+        "kherge/version": "@dev"
+    },
+
+    "require-dev": {
+        "symfony/console": "2.1.*"
+    },
+
+    "autoload": {
+        "psr-0": {
+            "KevinGH\\Amend": "src/lib/"
+        }
+    },
+
+    "config": {
+        "vendor-dir": "src/vendors"
+    },
+
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.0-dev"
+        }
+    },
+
+    "minimum-stability": "beta"
+}
