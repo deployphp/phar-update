@@ -32,6 +32,13 @@
         protected $extract;
 
         /**
+         * The integrity checker callable.
+         *
+         * @type callable
+         */
+        protected $integrity;
+
+        /**
          * The major version force lock flag.
          *
          * @type boolean
@@ -131,6 +138,8 @@
                     return preg_replace($regex, '\\1', $info['name']);
                 });
             }
+
+            $helper->setIntegrityChecker($this->integrity);
 
             $helper->setLock(false === $input->getOption('upgrade'));
 
