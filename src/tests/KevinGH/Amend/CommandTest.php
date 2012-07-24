@@ -98,6 +98,30 @@
             );
         }
 
+        public function testExecuteRedo()
+        {
+            $url = $this->property($this->command, 'url');
+
+            $url('file://' . $dir = $this->dir());
+
+            file_put_contents("$dir/downloads", utf8_encode(json_encode(array(
+                array(
+                    'name' => 'test-1.0.0.phar',
+                    'html_url' => $this->file()
+                )
+            ))));
+
+            $this->tester->execute(array(
+                'command' => self::NAME,
+                '--redo' => true
+            ));
+
+            $this->assertEquals(
+                "Update successful!\n",
+                $this->tester->getDisplay()
+            );
+        }
+
         public function testExecuteUpdate()
         {
             $url = $this->property($this->command, 'url');

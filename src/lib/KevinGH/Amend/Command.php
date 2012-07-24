@@ -91,7 +91,7 @@
             {
                 $current = $helper->getVersion();
 
-                if ($info['version']->isGreaterThan($current))
+                if ($input->getOption('redo') || $info['version']->isGreaterThan($current))
                 {
                     $temp = $helper->getFile($info, $this->rename);
 
