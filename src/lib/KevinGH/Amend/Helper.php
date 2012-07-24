@@ -243,6 +243,16 @@
         }
 
         /**
+         * Returns the processed application verison.
+         *
+         * @return Version The application version.
+         */
+        public function getVersion()
+        {
+            return $this->version;
+        }
+
+        /**
          * Performs a request.
          *
          * @throws LogicException If the API URL is not set.

@@ -281,6 +281,11 @@
             $this->assertEquals('amend', $this->helper->getName());
         }
 
+        public function testGetVersion()
+        {
+            $this->assertNull($this->helper->getVersion());
+        }
+
         /**
          * @expectedException LogicException
          * @expectedExceptionMessage The API URL is not set.
@@ -403,8 +408,6 @@
         {
             $this->helper->setVersion('1.0.0');
 
-            $property = $this->property($this->helper, 'version');
-
-            $this->assertEquals('1.0.0', (string) $property());
+            $this->assertEquals('1.0.0', (string) $this->helper->getVersion());
         }
     }
