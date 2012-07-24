@@ -235,7 +235,7 @@
 
             $this->helper->setVersion('1.0.0');
 
-            $latest = $this->helper->getLatest(true);
+            $latest = $this->helper->getLatest();
 
             $this->assertEquals('1.0.1', (string) $latest['version']);
 
@@ -365,11 +365,11 @@
         {
             $property = $this->property($this->helper, 'lock');
 
-            $this->assertFalse($property());
-
-            $this->helper->setLock(true);
-
             $this->assertTrue($property());
+
+            $this->helper->setLock(false);
+
+            $this->assertFalse($property());
         }
 
         public function testSetMatcher()

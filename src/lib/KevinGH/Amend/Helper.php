@@ -62,7 +62,7 @@
          *
          * @type boolean
          */
-        private $lock = false;
+        private $lock = true;
 
         /**
          * The download matcher.
@@ -203,8 +203,13 @@
          * @param boolean $lock Lock to same major version?
          * @return array The latest download.
          */
-        public function getLatest($lock)
+        public function getLatest($lock = null)
         {
+            if (null === $lock)
+            {
+                $lock = $this->lock;
+            }
+
             if ($downloads = $this->getDownloads())
             {
                 if (null === $this->version)
