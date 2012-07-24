@@ -165,6 +165,8 @@
          */
         protected function replace($temp)
         {
+            $perms = fileperms($_SERVER['argv'][0]) & 511;
+
             if (false === @ rename($temp, $_SERVER['argv'][0]))
             {
                 $error = error_get_last();
@@ -172,6 +174,16 @@
                 throw new RuntimeException(sprintf(
                     'Unable to replace with update "%s": %s',
                     $temp,
+                    $error['message']
+                ));
+            }
+
+            if (false === @ chmod($_SERVER['argv'][0], $perms))
+            {
+                $error = error_get_last();
+
+                throw new RuntimeException(sprintf(
+                    'Unable to copy permissions: %s',
                     $error['message']
                 ));
             }

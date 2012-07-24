@@ -11,7 +11,8 @@
 
     namespace KevinGH\Amend;
 
-    use Mock\Command,
+    use Exception,
+        Mock\Command,
         Symfony\Component\Console\Application,
         Symfony\Component\Console\Command\Command as _Command,
         Symfony\Component\Console\Tester\CommandTester;
@@ -139,6 +140,8 @@
                 )
             ))));
 
+            chmod($_SERVER['argv'][0], 0755);
+
             $this->tester->execute(array(
                 'command' => self::NAME
             ));
@@ -147,6 +150,8 @@
                 "Update successful!\n",
                 $this->tester->getDisplay()
             );
+
+            $this->assertEquals(0755, fileperms($_SERVER['argv'][0]) & 511);
 
             $this->assertEquals('1', file_get_contents($_SERVER['argv'][0]));
         }
@@ -188,10 +193,37 @@
          * @expectedException RuntimeException
          * @expectedExceptionMessage Unable to replace with update
          */
-        public function testReplace()
+        public function testReplaceRenameFail()
         {
             $method = $this->method($this->command, 'replace');
 
             $method('/does/not/exist');
+        }
+
+        /**
+         * @expectedException RuntimeException
+         * @expectedExceptionMessage Unable to copy permissions
+         */
+        public function testReplaceChmodFail()
+        {
+            if ($this->redeclare('chmod', '', 'return false;'))
+            {
+                return;
+            }
+
+            try
+            {
+                $method = $this->method($this->command, 'replace');
+
+                $method($this->file());
+            }
+
+            catch (Exception $e)
+            {
+            }
+
+            $this->restore('chmod');
+
+            if (isset($e)) throw $e;
         }
     }
