@@ -336,9 +336,9 @@
          * @throws InvalidArgumentException If it is not a callable.
          * @param callable $extract The exctractor.
          */
-        public function setExtractor($extract)
+        public function setExtractor($extract = null)
         {
-            if (false === is_callable($extract))
+            if ((null !== $extract) && (false === is_callable($extract)))
             {
                 throw new InvalidArgumentException('The extractor is not callable.');
             }
@@ -352,9 +352,9 @@
          * @throws InvalidArgumentException If it is not a callable.
          * @param callable $integrity The integrity checker.
          */
-        public function setIntegrityChecker($integrity)
+        public function setIntegrityChecker($integrity = null)
         {
-            if (false === is_callable($integrity))
+            if ((null !== $integrity) && (false === is_callable($integrity)))
             {
                 throw new InvalidArgumentException('The integrity checker is not callable.');
             }
@@ -378,9 +378,9 @@
          * @throws InvalidArgumentException If it is not a callable.
          * @param callable $match The matcher.
          */
-        public function setMatcher($match)
+        public function setMatcher($match = null)
         {
-            if (false === is_callable($match))
+            if ((null !== $match) && (false === is_callable($match)))
             {
                 throw new InvalidArgumentException('The matcher is not callable.');
             }
