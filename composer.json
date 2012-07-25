@@ -13,11 +13,11 @@
 
     "require": {
         "php": ">=5.3.3",
-        "kherge/version": "@dev"
+        "kherge/version": "1.*"
     },
 
     "require-dev": {
-        "symfony/console": "2.1.*"
+        "symfony/console": "2.1.*@beta"
     },
 
     "autoload": {
@@ -36,5 +36,5 @@
         }
     },
 
-    "minimum-stability": "beta"
+    "minimum-stability": "stable"
 }
