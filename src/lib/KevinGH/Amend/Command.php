@@ -27,6 +27,7 @@
         /**
          * The version extraction regular expression.
          *
+         * @api
          * @type string
          */
         protected $extract;
@@ -34,6 +35,7 @@
         /**
          * The integrity checker callable.
          *
+         * @api
          * @type callable
          */
         protected $integrity;
@@ -41,6 +43,7 @@
         /**
          * The major version force lock flag.
          *
+         * @api
          * @type boolean
          */
         protected $lock = null;
@@ -48,6 +51,7 @@
         /**
          * The download matching regular expression.
          *
+         * @api
          * @type string
          */
         protected $match;
@@ -55,6 +59,7 @@
         /**
          * The name of the temporary file.
          *
+         * @api
          * @type string
          */
         protected $rename = null;
@@ -62,6 +67,7 @@
         /**
          * The API base URL.
          *
+         * @api
          * @type string
          */
         protected $url;
@@ -124,6 +130,7 @@
         /**
          * Prepares the helper for the actual update/upgrade process.
          *
+         * @api
          * @param InputInterface $input The input.
          * @return Helper The prepared Amend helper.
          */
@@ -161,6 +168,7 @@
         /**
          * Replaces the current running program with the update.
          *
+         * @api
          * @param string $temp The path to the update file.
          */
         protected function replace($temp)

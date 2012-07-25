@@ -27,6 +27,7 @@
         /**
          * The buffer size.
          *
+         * @api
          * @type integer
          */
         const BUFFER_SIZE = 4096;
@@ -95,6 +96,7 @@
         /**
          * Returns the list of available downloads.
          *
+         * @api
          * @return array The available downloads.
          */
         public function getDownloads()
@@ -132,6 +134,7 @@
         /**
          * Uses the download information to download its file.
          *
+         * @api
          * @throws RuntimeException If the file could not be downloaded.
          * @param array $info The download information.
          * @param string $rename The name of the downloaded file.
@@ -215,6 +218,7 @@
         /**
          * Returns the latest download from the list.
          *
+         * @api
          * @param boolean $lock Lock to same major version?
          * @return array The latest download.
          */
@@ -260,6 +264,7 @@
         /**
          * Returns the processed application verison.
          *
+         * @api
          * @return Version The application version.
          */
         public function getVersion()
@@ -333,6 +338,7 @@
         /**
          * Sets the download version extractor callable.
          *
+         * @api
          * @throws InvalidArgumentException If it is not a callable.
          * @param callable $extract The exctractor.
          */
@@ -349,6 +355,7 @@
         /**
          * Sets the download integrity checker callable.
          *
+         * @api
          * @throws InvalidArgumentException If it is not a callable.
          * @param callable $integrity The integrity checker.
          */
@@ -365,6 +372,7 @@
         /**
          * Sets the major version lock state.
          *
+         * @api
          * @param boolean $lock The new state.
          */
         public function setLock($lock)
@@ -375,6 +383,7 @@
         /**
          * Sets the download matcher callable.
          *
+         * @api
          * @throws InvalidArgumentException If it is not a callable.
          * @param callable $match The matcher.
          */
@@ -391,6 +400,7 @@
         /**
          * Sets the API base URL.
          *
+         * @api
          * @param string $url The base URL.
          */
         public function setURL($url)
@@ -401,6 +411,7 @@
         /**
          * Sets the application version.
          *
+         * @api
          * @param string|Version $version The version.
          */
         public function setVersion($version)
