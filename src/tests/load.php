@@ -1,5 +1,6 @@
 <?php
 
-    $loader = require __DIR__ . '/../vendors/autoload.php';
+$loader = require __DIR__ . '/../vendors/autoload.php';
 
-    $loader->add(null, __DIR__);
+$loader->add(null, __DIR__);
+

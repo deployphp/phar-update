@@ -393,7 +393,7 @@ class Helper extends _Helper
      *
      * @api
      */
-    public function setURL($url)
+    public function setUrl($url)
     {
         $this->url = $url;
     }
@@ -414,3 +414,4 @@ class Helper extends _Helper
         $this->version = $version;
     }
 }
+

@@ -138,8 +138,7 @@ class Command extends _Command
         $helper = $this->getHelper('amend');
 
         if ($regex = $this->extract) {
-            $helper->setExtractor(function ($info) use ($regex)
-            {
+            $helper->setExtractor(function ($info) use ($regex) {
                 return preg_replace($regex, '\\1', $info['name']);
             });
         }
@@ -149,13 +148,12 @@ class Command extends _Command
         $helper->setLock(false === $input->getOption('upgrade'));
 
         if ($regex = $this->match) {
-            $helper->setMatcher(function ($info) use ($regex)
-            {
+            $helper->setMatcher(function ($info) use ($regex) {
                 return (bool) preg_match($regex, $info['name']);
             });
         }
 
-        $helper->setURL($this->url);
+        $helper->setUrl($this->url);
 
         $helper->setVersion($this->getApplication()->getVersion());
 
@@ -193,3 +191,4 @@ class Command extends _Command
         }
     }
 }
+
