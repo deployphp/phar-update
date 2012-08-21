@@ -169,9 +169,10 @@ class Command extends _Command
      */
     protected function replace($temp)
     {
-        $perms = fileperms($_SERVER['argv'][0]) & 511;
+        $self = realpath($_SERVER['argv'][0]);
+        $perms = fileperms($self) & 511;
 
-        if (false === @ rename($temp, $_SERVER['argv'][0])) {
+        if (false === @ rename($temp, $self)) {
             $error = error_get_last();
 
             throw new RuntimeException(sprintf(
@@ -181,7 +182,7 @@ class Command extends _Command
             ));
         }
 
-        if (false === @ chmod($_SERVER['argv'][0], $perms)) {
+        if (false === @ chmod($self, $perms)) {
             $error = error_get_last();
 
             throw new RuntimeException(sprintf(
