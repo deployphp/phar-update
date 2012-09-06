@@ -1,0 +1,22 @@
+{
+    "hash": "d5e7bb39b97a64aa73b1d35309d5fb82",
+    "packages": [
+        {
+            "package": "kherge/version",
+            "version": "1.0.1"
+        }
+    ],
+    "packages-dev": [
+        {
+            "package": "symfony/console",
+            "version": "v2.1.0"
+        }
+    ],
+    "aliases": [
+
+    ],
+    "minimum-stability": "stable",
+    "stability-flags": [
+
+    ]
+}
