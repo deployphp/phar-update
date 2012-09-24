@@ -252,7 +252,7 @@ class Helper extends _Helper
     }
 
     /**
-     * Returns the processed application verison.
+     * Returns the processed application version.
      *
      * @return Version The application version.
      *
@@ -323,7 +323,7 @@ class Helper extends _Helper
     /**
      * Sets the download version extractor callable.
      *
-     * @param callable $extract The exctractor.
+     * @param callable $extract The extractor.
      *
      * @throws InvalidArgumentException If it is not a callable.
      *
