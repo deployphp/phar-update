@@ -2,7 +2,7 @@
 
 [![Build Status](https://secure.travis-ci.org/kherge/Amend.png?branch=master)](http://travis-ci.org/kherge/Amend)
 
-A Symfony Console component helper and command set for updating and upgrading PHAR-based console applications.
+A Symfony Console component helper and command set for updating and upgrading PHAR-based console applications via GitHub downloads.
 
 ## Installing
 
