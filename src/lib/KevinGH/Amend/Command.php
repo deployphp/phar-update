@@ -22,7 +22,7 @@ use Symfony\Component\Console\Output\OutputInterface;
  *
  * @author Kevin Herrera <me@kevingh.com>
  */
-class Command extends _Command
+abstract class Command extends _Command
 {
     /**
      * The version extraction regular expression.
