@@ -1,15 +1,136 @@
 {
-    "hash": "d5e7bb39b97a64aa73b1d35309d5fb82",
+    "hash": "3fe1b50ab42211cd31453ca51b68a2ca",
     "packages": [
         {
-            "package": "kherge/version",
-            "version": "1.0.1"
+            "name": "kherge/version",
+            "version": "1.0.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/kherge/Version.git",
+                "reference": "1.0.1"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://github.com/kherge/Version/zipball/1.0.1",
+                "reference": "1.0.1",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.3"
+            },
+            "time": "2012-08-16 10:13:03",
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.0-dev"
+                }
+            },
+            "installation-source": "dist",
+            "autoload": {
+                "psr-0": {
+                    "KevinGH\\Version": "src/lib/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Kevin Herrera",
+                    "email": "me@kevingh.com",
+                    "homepage": "http://www.kevingh.com/"
+                }
+            ],
+            "description": "A parsing and comparison library for semantic versioning.",
+            "homepage": "http://github.com/kherge/Version"
         }
     ],
     "packages-dev": [
         {
-            "package": "symfony/console",
-            "version": "v2.1.0"
+            "name": "kherge/phpunit-test-case",
+            "version": "1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/kherge/TestCase.git",
+                "reference": "1.0.0"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://github.com/kherge/TestCase/archive/1.0.0.zip",
+                "reference": "1.0.0",
+                "shasum": ""
+            },
+            "suggest": {
+                "phpunit": ">=5.3.*"
+            },
+            "time": "2012-11-29 08:00:32",
+            "type": "library",
+            "installation-source": "dist",
+            "autoload": {
+                "psr-0": {
+                    "KevinGH\\PHPUnit": "src/lib"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Kevin Herrera",
+                    "email": "kevin@herrera.io"
+                }
+            ],
+            "description": "A suped up test case."
+        },
+        {
+            "name": "symfony/console",
+            "version": "v2.1.4",
+            "target-dir": "Symfony/Component/Console",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/symfony/Console",
+                "reference": "v2.1.4"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://github.com/symfony/Console/archive/v2.1.4.zip",
+                "reference": "v2.1.4",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.3"
+            },
+            "time": "2012-11-09 08:52:51",
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "2.1-dev"
+                }
+            },
+            "installation-source": "dist",
+            "autoload": {
+                "psr-0": {
+                    "Symfony\\Component\\Console": ""
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Fabien Potencier",
+                    "email": "fabien@symfony.com"
+                },
+                {
+                    "name": "Symfony Community",
+                    "homepage": "http://symfony.com/contributors"
+                }
+            ],
+            "description": "Symfony Console Component",
+            "homepage": "http://symfony.com"
         }
     ],
     "aliases": [
