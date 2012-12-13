@@ -32,23 +32,23 @@ class HelperTest extends RunkitTestCase
     protected function setUp()
     {
         $this->manifest = tempnam(sys_get_temp_dir(), 'ame');
-        $this->file = realpath(__DIR__ . '/../../Mock/Command.php');
+        $this->file = __FILE__;
         $this->sha1 = sha1_file($this->file);
         $this->updates = array(
             array(
-                'name' => 'Command.php',
+                'name' => basename(__FILE__),
                 'sha1' => $this->sha1,
                 'url' => $this->file,
                 'version' => '1.0.0'
             ),
             array(
-                'name' => 'Command.php',
+                'name' => basename(__FILE__),
                 'sha1' => $this->sha1,
                 'url' => $this->file,
                 'version' => '1.1.0'
             ),
             array(
-                'name' => 'Command.php',
+                'name' => basename(__FILE__),
                 'sha1' => $this->sha1,
                 'url' => $this->file,
                 'version' => '2.0.0'

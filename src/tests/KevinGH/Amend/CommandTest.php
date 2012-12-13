@@ -11,10 +11,10 @@
 
 namespace KevinGH\Amend\Tests;
 
+use KevinGH\Amend\Command;
 use KevinGH\Amend\Helper;
 use KevinGH\Runkit\RunkitTestCase;
 use KevinGH\Version\Version;
-use Mock\Command;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Tester\CommandTester;
 

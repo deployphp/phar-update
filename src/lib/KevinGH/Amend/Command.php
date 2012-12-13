@@ -23,7 +23,7 @@ use Symfony\Component\Console\Output\OutputInterface;
  *
  * @author Kevin Herrera <me@kevingh.com>
  */
-abstract class Command extends Base
+class Command extends Base
 {
     /**
      * The major version lock flag.
