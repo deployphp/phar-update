@@ -29,7 +29,7 @@ class ManifestJsonException extends UnexpectedValueException
     {
         $this->url = $url;
 
-        parent::__construct(null, $code);
+        parent::__construct('The updates manifest file is invalid.', $code);
     }
 
     /**

@@ -57,6 +57,8 @@ class FileChecksumException extends UnexpectedValueException
         $this->newPath = $newPath;
         $this->sourceChecksum = $sourceChecksum;
         $this->sourcePath = $sourcePath;
+
+        parent::__construct('The file did not match the expected checksum.');
     }
 
     /**

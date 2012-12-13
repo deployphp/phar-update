@@ -19,6 +19,14 @@ class FileChecksumExceptionTest extends PHPUnit_Framework_TestCase
         );
     }
 
+    public function testConstructor()
+    {
+        $this->assertEquals(
+            'The file did not match the expected checksum.',
+            $this->exception->getMessage()
+        );
+    }
+
     public function testGetNewChecksum()
     {
         $this->assertEquals('d', $this->exception->getNewChecksum());

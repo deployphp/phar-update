@@ -14,6 +14,14 @@ class ManifestJsonExceptionTest extends PHPUnit_Framework_TestCase
         $this->exception = new ManifestJsonException('url', 123);
     }
 
+    public function testConstructor()
+    {
+        $this->assertEquals(
+            'The updates manifest file is invalid.',
+            $this->exception->getMessage()
+        );
+    }
+
     public function testGetCode()
     {
         $this->assertSame(123, $this->exception->getCode());
