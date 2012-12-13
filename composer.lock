@@ -1,5 +1,5 @@
 {
-    "hash": "3fe1b50ab42211cd31453ca51b68a2ca",
+    "hash": "385839019856b330680f22c8cf33a01f",
     "packages": [
         {
             "name": "kherge/version",
@@ -48,28 +48,29 @@
     ],
     "packages-dev": [
         {
-            "name": "kherge/phpunit-test-case",
+            "name": "kherge/runkit-test-case",
             "version": "1.0.0",
             "source": {
                 "type": "git",
-                "url": "https://github.com/kherge/TestCase.git",
+                "url": "https://github.com/kherge/RunkitTestCase.git",
                 "reference": "1.0.0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://github.com/kherge/TestCase/archive/1.0.0.zip",
+                "url": "https://github.com/kherge/RunkitTestCase/zipball/1.0.0",
                 "reference": "1.0.0",
                 "shasum": ""
             },
-            "suggest": {
-                "phpunit": ">=5.3.*"
+            "require": {
+                "php": ">=5.3",
+                "ext-runkit": ">=0.7.0"
             },
-            "time": "2012-11-29 08:00:32",
+            "time": "2012-10-12 18:37:47",
             "type": "library",
             "installation-source": "dist",
             "autoload": {
                 "psr-0": {
-                    "KevinGH\\PHPUnit": "src/lib"
+                    "KevinGH\\Runkit": "src/lib"
                 }
             },
             "notification-url": "https://packagist.org/downloads/",
@@ -82,7 +83,7 @@
                     "email": "kevin@herrera.io"
                 }
             ],
-            "description": "A suped up test case."
+            "description": "A PHPUnit test case that makes using Runkit a little easier."
         },
         {
             "name": "symfony/console",

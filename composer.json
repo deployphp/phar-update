@@ -17,7 +17,7 @@
     },
 
     "require-dev": {
-        "kherge/phpunit-test-case": "1.*",
+        "kherge/runkit-test-case": "1.*",
         "symfony/console": "2.1.*"
     },
 
