@@ -9,464 +9,358 @@
  * source code.
  */
 
-namespace KevinGH\Amend;
+namespace KevinGH\Amend\Tests;
 
-use Exception;
+use KevinGh\Amend\Exception\FileChecksumException;
+use KevinGh\Amend\Exception\FileException;
+use KevinGh\Amend\Exception\ManifestJsonException;
+use KevinGh\Amend\Exception\ManifestReadException;
+use KevinGH\Amend\Helper;
+use KevinGH\Runkit\RunkitTestCase;
 use KevinGH\Version\Version;
+use PHPUnit_Framework_Error_Warning;
 
-class HelperTest extends TestCase
+class HelperTest extends RunkitTestCase
 {
+    private $file;
     private $helper;
+    private $manifest;
+    private $sha1;
+    private $updates;
+    private $version;
 
     protected function setUp()
     {
-        $this->helper = new Helper;
-    }
-
-    public function testGetDownloads()
-    {
-        $this->helper->setExtractor(
-            function ($download) {
-                return preg_replace('/^test\-(.+?)\.txt$/', '\\1', $download['name']);
-            }
-        );
-
-        $this->helper->setMatcher(
-            function ($download) {
-                return (bool) preg_match('/^test\-(.+?)\.txt$/', $download['name']);
-            }
-        );
-
-        $this->helper->setURL($dir = $this->dir());
-
-        file_put_contents("$dir/downloads", utf8_encode(json_encode($expected = array(
-            array('name' => 'test-1.0.0.txt'),
-            array('name' => 'test-1.0.1.txt')
-        ))));
-
-        $downloads = $this->helper->getDownloads();
-
-        $expected = array(
+        $this->manifest = tempnam(sys_get_temp_dir(), 'ame');
+        $this->file = realpath(__DIR__ . '/../../Mock/Command.php');
+        $this->sha1 = sha1_file($this->file);
+        $this->updates = array(
             array(
-                'name' => 'test-1.0.0.txt',
-                'version' => new Version('1.0.0')
+                'name' => 'Command.php',
+                'sha1' => $this->sha1,
+                'url' => $this->file,
+                'version' => '1.0.0'
             ),
             array(
-                'name' => 'test-1.0.1.txt',
-                'version' => new Version('1.0.1')
+                'name' => 'Command.php',
+                'sha1' => $this->sha1,
+                'url' => $this->file,
+                'version' => '1.1.0'
+            ),
+            array(
+                'name' => 'Command.php',
+                'sha1' => $this->sha1,
+                'url' => $this->file,
+                'version' => '2.0.0'
             )
         );
 
-        $this->assertEquals($expected[0], $downloads[0]);
-        $this->assertEquals($expected[1], $downloads[1]);
-    }
+        file_put_contents($this->manifest, json_encode($this->updates));
 
-    /**
-     * @expectedException LogicException
-     * @expectedExceptionMessage No version extractor set.
-     */
-    public function testGetDownloadsNoExtractor()
-    {
-        $this->helper->getDownloads();
-    }
-
-    /**
-     * @expectedException LogicException
-     * @expectedExceptionMessage No download matcher set.
-     */
-    public function testGetDownloadsNoMatcher()
-    {
-        $this->helper->setExtractor(
-            function () {
-            }
-        );
-
-        $this->helper->getDownloads();
-    }
-
-    public function testGetFile()
-    {
-        $file = $this->file($rand = rand());
-
-        $temp = $this->helper->getFile(array(
-            'html_url' => $file,
-            'name' => 'other-test'
-        ), 'test');
-
-        $this->helper->setIntegrityChecker(
-            function ($temp) use ($rand) {
-                if ($rand != file_get_contents($temp)) {
-                    return false;
-                }
-            }
-        );
-
-        $this->assertFileEquals($file, $temp);
-    }
-
-    /**
-     * @expectedException RuntimeException
-     * @expectedExceptionMessage The download file
-     */
-    public function testGetFileInOpenFail()
-    {
-        if ($this->redeclare('fopen', '', 'return false;')) {
-            return;
+        foreach ($this->updates as $i => $update) {
+            $this->updates[$i]['version'] = Version::create($update['version']);
         }
+
+        $this->helper = new Helper($this->manifest);
+        $this->version = new Version('1.0.0');
+    }
+
+    /**
+     * @expectedException KevinGH\Amend\Exception\FileException
+     * @expectedExceptionMessage Fake warning.
+     */
+    public function testDownlodUpdateSourceOpenError()
+    {
+        $this->requireRunkit(true);
+        $this->redefineFunction(
+            'fopen',
+            '',
+            'trigger_error("Fake warning.", E_USER_WARNING); return false;'
+        );
+
+        PHPUnit_Framework_Error_Warning::$enabled = false;
 
         try {
-            $this->helper->getFile(array(
-                'html_url' => 'file:///test/path',
-                'name' => 'test'
-            ));
-        } catch (Exception $e) {
-        }
+            $this->helper->downloadUpdate($this->updates[0]);
+        } catch (FileException $exception) {
+            $this->assertEquals(
+                $this->updates[0]['url'],
+                $exception->getProblemFile()
+            );
 
-        $this->restore('fopen');
-
-        if (isset($e)) {
-            throw $e;
+            throw $exception;
         }
     }
 
     /**
-     * @expectedException RuntimeException
-     * @expectedExceptionMessage The temporary file
+     * @expectedException KevinGH\Amend\Exception\FileException
+     * @expectedExceptionMessage Fake warning.
      */
-    public function testGetFileOutOpenFail()
+    public function testDownlodUpdateNewOpenError()
     {
-        if ($this->redeclare(
+        $this->requireRunkit(true);
+        $this->renameFunction('fopen', '_fopen');
+        $this->addFunction(
             'fopen',
             '$a, $b',
-            'if ("wb" == $b) return false; return _fopen($a, $b);')
-        ) {
-            return;
-        }
+            'if ($a != "' . $this->updates[0]['url'] . '") { trigger_error("Fake warning.", E_USER_WARNING); return false; } return _fopen($a, $b);'
+        );
+
+        PHPUnit_Framework_Error_Warning::$enabled = false;
 
         try {
-            $this->helper->getFile(array(
-                'html_url' => 'file://' . $this->file(),
-                'name' => 'test'
-            ));
-        } catch (Exception $e) {
-        }
+            $this->helper->downloadUpdate($this->updates[0]);
+        } catch (FileException $exception) {
+            $this->assertStringStartsWith(
+                sys_get_temp_dir(),
+                $exception->getProblemFile()
+            );
 
-        $this->restore('fopen');
-
-        if (isset($e)) {
-            throw $e;
+            throw $exception;
         }
     }
 
     /**
-     * @expectedException RuntimeException
-     * @expectedExceptionMessage The download file
+     * @expectedException KevinGH\Amend\Exception\FileException
+     * @expectedExceptionMessage Fake warning.
      */
-    public function testGetFileReadFail()
+    public function testDownlodUpdateSourceReadError()
     {
-        if ($this->redeclare('fread', '', 'return false;')) {
-            return;
-        }
+        $this->requireRunkit(true);
+        $this->redefineFunction(
+            'fread',
+            '',
+            'trigger_error("Fake warning.", E_USER_WARNING); return false;'
+        );
+
+        PHPUnit_Framework_Error_Warning::$enabled = false;
 
         try {
-            $this->helper->getFile(array(
-                'html_url' => 'file://' . $this->file(),
-                'name' => 'test'
-            ));
-        } catch (Exception $e) {
-        }
+            $this->helper->downloadUpdate($this->updates[0]);
+        } catch (FileException $exception) {
+            $this->assertEquals(
+                $this->updates[0]['url'],
+                $exception->getProblemFile()
+            );
 
-        $this->restore('fread');
-
-        if (isset($e)) {
-            throw $e;
+            throw $exception;
         }
     }
 
     /**
-     * @expectedException RuntimeException
-     * @expectedExceptionMessage The temporary file
+     * @expectedException KevinGH\Amend\Exception\FileException
+     * @expectedExceptionMessage Fake warning.
      */
-    public function testGetFileWriteFail()
+    public function testDownlodUpdateNewWriteError()
     {
-        if ($this->redeclare('fwrite', '', 'return false;')) {
-            return;
-        }
+        $this->requireRunkit(true);
+        $this->redefineFunction(
+            'fwrite',
+            '',
+            'trigger_error("Fake warning.", E_USER_WARNING); return false;'
+        );
+
+        PHPUnit_Framework_Error_Warning::$enabled = false;
 
         try {
-            $this->helper->getFile(array(
-                'html_url' => 'file://' . $this->file(),
-                'name' => 'test'
-            ));
-        } catch (Exception $e) {
-        }
+            $this->helper->downloadUpdate($this->updates[0]);
+        } catch (FileException $exception) {
+            $this->assertStringStartsWith(
+                sys_get_temp_dir(),
+                $exception->getProblemFile()
+            );
 
-        $this->restore('fwrite');
-
-        if (isset($e)) {
-            throw $e;
+            throw $exception;
         }
     }
 
     /**
-     * @expectedException RuntimeException
-     * @expectedExceptionMessage The downloaded update
+     * @expectedException KevinGH\Amend\Exception\FileChecksumException
      */
-    public function testGetFileIntegrityFail()
+    public function testDownlodUpdateChecksumError()
     {
-        $file = $this->file($rand = rand());
-
-        $this->helper->setIntegrityChecker(
-            function ($temp) use ($rand) {
-                return false;
-            }
+        $this->requireRunkit(true);
+        $this->redefineFunction(
+            'sha1_file',
+            '',
+            'return "fake checksum";'
         );
 
-        $temp = $this->helper->getFile(array(
-            'html_url' => $file,
-            'name' => 'other-test'
-        ), 'test');
+        PHPUnit_Framework_Error_Warning::$enabled = false;
+
+        try {
+            $this->helper->downloadUpdate($this->updates[0]);
+        } catch (FileChecksumException $exception) {
+            $this->assertEquals('fake checksum', $exception->getNewChecksum());
+            $this->assertStringStartsWith(
+                sys_get_temp_dir(),
+                $exception->getNewPath()
+            );
+            $this->assertEquals(
+                $this->updates[0]['sha1'],
+                $exception->getSourceChecksum()
+            );
+            $this->assertEquals(
+                $this->updates[0]['url'],
+                $exception->getSourcePath()
+            );
+
+            throw $exception;
+        }
     }
 
-    public function testGetLatest()
+    public function testDownloadUpdate()
     {
-        $this->helper->setExtractor(
-            function ($download) {
-                return preg_replace('/^test\-(.+?)\.txt$/', '\\1', $download['name']);
-            }
-        );
+        $temp = $this->helper->downloadUpdate($this->updates[0]);
 
-        $this->helper->setMatcher(
-            function ($download) {
-                return (bool) preg_match('/^test\-(.+?)\.txt$/', $download['name']);
-            }
-        );
-
-        $this->helper->setURL($dir = $this->dir());
-
-        file_put_contents("$dir/downloads", utf8_encode(json_encode($expected = array(
-            array('name' => 'test-1.0.0.txt'),
-            array('name' => 'test-2.0.1.txt'),
-            array('name' => 'test-1.0.1.txt')
-        ))));
-
-        $this->helper->setVersion('1.0.0');
-
-        $latest = $this->helper->getLatest();
-
-        $this->assertEquals('1.0.1', (string)$latest['version']);
-
-        $latest = $this->helper->getLatest(false);
-
-        $this->assertEquals('2.0.1', (string)$latest['version']);
+        $this->assertFileEquals($this->file, $temp);
     }
 
-    public function testGetLatestEmpty()
+    public function testFindUpdateMajorVersionLock()
     {
-        $this->helper->setExtractor(
-            function () {
-            }
+        $this->assertEquals(
+            $this->updates[1],
+            $this->helper->findUpdate($this->updates, $this->version, true)
         );
+    }
 
-        $this->helper->setMatcher(
-            function () {
-            }
+    public function testFindUpdate()
+    {
+        $this->assertEquals(
+            $this->updates[2],
+            $this->helper->findUpdate($this->updates, $this->version)
         );
-
-        $this->helper->setURL($dir = $this->dir());
-
-        $this->helper->setVersion('1.0.0');
-
-        file_put_contents("$dir/downloads", '{}');
-
-        $this->assertNull($this->helper->getLatest(false));
     }
 
     /**
-     * @expectedException LogicException
-     * @expectedExceptionMessage No current version is set.
+     * @expectedException KevinGH\Amend\Exception\ManifestReadException
+     * @expectedExceptionMessage Fake warning.
      */
-    public function testGetLatestNoCurrent()
+    public function testGetManifestReadError()
     {
-        $this->helper->setExtractor(
-            function () {
-                return '1.0.0';
-            }
+        $this->requireRunkit(true);
+        $this->redefineFunction(
+            'file_get_contents',
+            '',
+            'trigger_error("Fake warning.", E_USER_WARNING); return false;'
         );
 
-        $this->helper->setMatcher(
-            function () {
-                return true;
-            }
-        );
+        PHPUnit_Framework_Error_Warning::$enabled = false;
 
-        $this->helper->setURL($dir = $this->dir());
+        try {
+            $this->helper->getManifest();
+        } catch (ManifestReadException $exception) {
+            $this->assertEquals($this->manifest, $exception->getUrl());
 
-        file_put_contents("$dir/downloads", '[{"name": ""}]');
+            throw $exception;
+        }
+    }
 
-        $this->helper->getLatest(false);
+    /**
+     * @expectedException KevinGH\Amend\Exception\ManifestJsonException
+     */
+    public function testGetManifestJsonError()
+    {
+        $tmp = tempnam(sys_get_temp_dir(), 'ame');
+
+        file_put_contents($tmp, '{');
+
+        $helper = new Helper($tmp);
+
+        try {
+            $helper->getManifest();
+        } catch (ManifestJsonException $exception) {
+            $this->assertEquals(JSON_ERROR_SYNTAX, $exception->getCode());
+            $this->assertEquals($tmp, $exception->getUrl());
+
+            throw $exception;
+        }
+    }
+
+    public function testGetManifest()
+    {
+        $this->assertEquals($this->updates, $this->helper->getManifest());
     }
 
     public function testGetName()
     {
-        $this->assertEquals('amend', $this->helper->getName());
+        $this->assertEquals(Helper::NAME, $this->helper->getName());
     }
 
-    public function testGetVersion()
+    public function testGetRunningFile()
     {
-        $this->assertNull($this->helper->getVersion());
-    }
-
-    /**
-     * @expectedException LogicException
-     * @expectedExceptionMessage The API URL is not set.
-     */
-    public function testMakeRequestNoUrl()
-    {
-        $this->helper->makeRequest('test');
-    }
-
-    public function testMakeRequest()
-    {
-        $file = $this->file(utf8_encode(json_encode($expected = array('rand' => rand()))));
-
-        $this->helper->setURL('file://' . dirname($file));
-
-        $this->assertSame($expected, $this->helper->makeRequest(basename($file)));
+        $this->assertEquals(
+            realpath($_SERVER['argv'][0]),
+            $this->helper->getRunningFile()
+        );
     }
 
     /**
-     * @expectedException RuntimeException
-     * @expectedExceptionMessage The request "/does/not/exist" could not be made:
+     * @expectedException KevinGH\Amend\Exception\FileException
+     * @expectedExceptionMessage Fake warning.
      */
-    public function testMakeRequestFail()
+    public function testReplaceRenameError()
     {
-        $this->helper->setURL('/does/not');
+        $this->requireRunkit(true);
+        $this->redefineFunction(
+            'rename',
+            '',
+            'trigger_error("Fake warning.", E_USER_WARNING); return false;'
+        );
 
-        $this->helper->makeRequest('exist');
+        $tmp1 = tempnam(sys_get_temp_dir(), 'ame');
+        $tmp2 = tempnam(sys_get_temp_dir(), 'ame');
+
+        PHPUnit_Framework_Error_Warning::$enabled = false;
+
+        try {
+            $this->helper->replaceFile($tmp1, $tmp2);
+        } catch (FileException $exception) {
+            $this->assertEquals("$tmp1 -> $tmp2", $exception->getProblemFile());
+
+            throw $exception;
+        }
     }
 
     /**
-     * @expectedException RuntimeException
-     * @expectedExceptionMessage The request
+     * @expectedException KevinGH\Amend\Exception\FileException
+     * @expectedExceptionMessage Fake warning.
      */
-    public function testMakeRequestIsNull()
+    public function testReplaceChmodError()
     {
-        $this->helper->setURL('file://' . dirname($file = $this->file('')));
+        $this->requireRunkit(true);
+        $this->redefineFunction(
+            'chmod',
+            '',
+            'trigger_error("Fake warning.", E_USER_WARNING); return false;'
+        );
 
-        $this->helper->makeRequest(basename($file));
+        $tmp1 = tempnam(sys_get_temp_dir(), 'ame');
+        $tmp2 = tempnam(sys_get_temp_dir(), 'ame');
+
+        PHPUnit_Framework_Error_Warning::$enabled = false;
+
+        try {
+            $this->helper->replaceFile($tmp1, $tmp2);
+        } catch (FileException $exception) {
+            $this->assertEquals("$tmp1 -> $tmp2", $exception->getProblemFile());
+
+            throw $exception;
+        }
     }
 
-    /**
-     * @expectedException RuntimeException
-     * @expectedExceptionMessage The request
-     */
-    public function testMakeRequestIsInvalid()
+    public function testReplaceFile()
     {
-        $this->helper->setURL('file://' . dirname($file = $this->file('{')));
+        $tmp1 = tempnam(sys_get_temp_dir(), 'ame');
+        $tmp2 = tempnam(sys_get_temp_dir(), 'ame');
 
-        $this->helper->makeRequest(basename($file));
-    }
+        if (false === @chmod($tmp2, 0777)) {
+            $this->markTestSkipped('Could not chmod file.');
+        }
 
-    /**
-     * @expectedException RuntimeException
-     * @expectedExceptionMessage API request error for
-     */
-    public function testMakeRequestApiError()
-    {
-        $this->helper->setURL('file://' . dirname($file = $this->file('{"message": "test"}')));
+        $this->helper->replaceFile($tmp1, $tmp2);
 
-        $this->helper->makeRequest(basename($file));
-    }
-
-    public function testSetExtractor()
-    {
-        $this->helper->setExtractor($expected = array(
-            __CLASS__,
-            __METHOD__
-        ));
-
-        $property = $this->property($this->helper, 'extract');
-
-        $this->assertEquals($expected, $property());
-    }
-
-    /**
-     * @expectedException InvalidArgumentException
-     * @expectedExceptionMessage The extractor is not callable.
-     */
-    public function testSetExtractorInvalid()
-    {
-        $this->helper->setExtractor(123);
-    }
-
-    public function testSetIntegrityChecker()
-    {
-        $this->helper->setIntegrityChecker($expected = array(
-            __CLASS__,
-            __METHOD__
-        ));
-
-        $property = $this->property($this->helper, 'integrity');
-
-        $this->assertEquals($expected, $property());
-    }
-
-    /**
-     * @expectedException InvalidArgumentException
-     * @expectedExceptionMessage The integrity checker is not callable.
-     */
-    public function testSetIntegrityCheckerInvalid()
-    {
-        $this->helper->setIntegrityChecker(123);
-    }
-
-    public function testSetLock()
-    {
-        $property = $this->property($this->helper, 'lock');
-
-        $this->assertTrue($property());
-
-        $this->helper->setLock(false);
-
-        $this->assertFalse($property());
-    }
-
-    public function testSetMatcher()
-    {
-        $this->helper->setMatcher($expected = array(
-            __CLASS__,
-            __METHOD__
-        ));
-
-        $property = $this->property($this->helper, 'match');
-
-        $this->assertEquals($expected, $property());
-    }
-
-    /**
-     * @expectedException InvalidArgumentException
-     * @expectedExceptionMessage The matcher is not callable.
-     */
-    public function testSetMatcherInvalid()
-    {
-        $this->helper->setMatcher(123);
-    }
-
-    public function testSetUrl()
-    {
-        $this->helper->setURL('test');
-
-        $property = $this->property($this->helper, 'url');
-
-        $this->assertEquals('test', $property());
-    }
-
-    public function testSetVersion()
-    {
-        $this->helper->setVersion('1.0.0');
-
-        $this->assertEquals('1.0.0', (string) $this->helper->getVersion());
+        $this->assertFalse(file_exists($tmp1));
+        $this->assertEquals(0777, fileperms($tmp2) & 511);
     }
 }
-

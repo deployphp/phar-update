@@ -1,417 +1,262 @@
 <?php
 
-/* This file is part of Amend.
- *
- * (c) 2012 Kevin Herrera
- *
- * For the full copyright and license information, please
- * view the LICENSE file that was distributed with this
- * source code.
- */
-
 namespace KevinGH\Amend;
 
-use InvalidArgumentException;
+use KevinGH\Amend\Exception\FileChecksumException;
+use KevinGH\Amend\Exception\FileException;
+use KevinGH\Amend\Exception\ManifestJsonException;
+use KevinGH\Amend\Exception\ManifestReadException;
 use KevinGH\Version\Version;
-use LogicException;
 use RuntimeException;
-use Symfony\Component\Console\Helper\Helper as _Helper;
+use Symfony\Component\Console\Helper\Helper as Base;
 
 /**
- * Provides most of the update functionality offered by Amend.
+ * Manages updating the PHAR application using a local or remote manifest file.
  *
- * @author Kevin Herrera <me@kevingh.com>
+ * Manifest file example:
+ * <code>
+ * [
+ *     {
+ *         "name": "box.phar",
+ *         "sha1": "6b6eab3b25eec36cc34c471798cae04f02e3179e",
+ *         "url": "https://github.com/downloads/kherge/Box/box-1.0.3.phar",
+ *         "version": "1.0.3"
+ *     },
+ *     {
+ *         "name": "box.phar",
+ *         "sha1": "86603190e1fa93af608bbcd96e658118b6a5391f",
+ *         "url": "http://box-project.org/box-1.0.4.phar",
+ *         "version": "1.0.4"
+ *     }
+ * ]
+ * </code>
+ *
+ * @author Kevin Herrera <kevin@herrera.io>
  */
-class Helper extends _Helper
+class Helper extends Base
 {
     /**
-     * The buffer size.
+     * The name of the helper.
      *
-     * @type integer
-     *
-     * @api
+     * @var string
      */
-    const BUFFER_SIZE = 4096;
+    const NAME = 'amend';
 
     /**
-     * The GitHub request context.
+     * The download buffer size.
      *
-     * @type array
+     * @var integer
      */
-    private $context = array(
-        'http' => array(
-            'method' => 'GET',
-            'header' => 'Accept: application/vnd.github.v3+json'
-        )
-    );
+    private $bufferSize;
 
     /**
-     * The cached downloads list.
+     * The stream context.
      *
-     * @type array
+     * @var resource
      */
-    private $downloads;
+    private $context;
 
     /**
-     * The download version extract.
+     * The name of the downloaded temporary file.
      *
-     * @type callable
+     * @var string
      */
-    private $extract;
+    private $name;
 
     /**
-     * The download integrity checker.
+     * The manifest file URL.
      *
-     * @type callable
-     */
-    private $integrity;
-
-    /**
-     * The major version lock state.
-     *
-     * @type boolean
-     */
-    private $lock = true;
-
-    /**
-     * The download matcher.
-     *
-     * @type callable
-     */
-    private $match;
-
-    /**
-     * The GitHub v3 API base URL.
-     *
-     * @type string
+     * @var string
      */
     private $url;
 
     /**
-     * The current application version.
+     * Sets the manifest file URL and creates the stream context.
      *
-     * @type Version
+     * @param string  $url    The URL.
+     * @param string  $name   The name of the downloaded temporary file.
+     * @param integer $buffer The download buffer size.
      */
-    private $version;
-
-    /**
-     * Returns the list of available downloads.
-     *
-     * @return array The available downloads.
-     *
-     * @api
-     */
-    public function getDownloads()
+    public function __construct($url, $name = null, $buffer = 4096)
     {
-        if (null === $this->downloads) {
-            if (null === $this->extract) {
-                throw new LogicException('No version extractor set.');
-            }
+        $this->bufferSize = $buffer;
+        $this->context = stream_context_create(array(
+            'http' => array(
+                'method' => 'GET',
+                'user_agent' => 'Amend/2.0'
+            )
+        ));
 
-            if (null === $this->match) {
-                throw new LogicException('No download matcher set.');
-            }
-
-            $this->downloads = array();
-
-            foreach ($this->makeRequest('downloads') as $download) {
-                if (true === call_user_func($this->match, $download)) {
-                    $download['version'] = new Version(
-                        call_user_func($this->extract, $download)
-                    );
-
-                    $this->downloads[] = $download;
-                }
-            }
-        }
-
-        return $this->downloads;
+        $this->name = $name;
+        $this->url = $url;
     }
 
     /**
-     * Uses the download information to download its file.
+     * Downloads the update file and validates its checksum.
      *
-     * @param array  $info   The download information.
-     * @param string $rename The name of the downloaded file.
+     * @param array $update The update.
      *
-     * @return string The temporary path to the file.
+     * @return string The temporary file path.
      *
-     * @throws RuntimeException If the file could not be downloaded.
-     *
-     * @api
+     * @throws FileException         If there is a file problem.
+     * @throws FileChecksumException If the downloaded file is invalid.
      */
-    public function getFile(array $info, $rename = null)
+    public function downloadUpdate(array $update)
     {
         unlink($dir = tempnam(sys_get_temp_dir(), 'ame'));
 
         mkdir($dir);
 
-        $temp = $dir . DIRECTORY_SEPARATOR . ($rename ?: $info['name']);
+        $temp = $dir . DIRECTORY_SEPARATOR . ($this->name ?: $update['name']);
 
-        if (false === ($in = @ fopen($info['html_url'], 'rb'))) {
-            $error = error_get_last();
-
-            throw new RuntimeException(sprintf(
-                'The download file "%s" could not be opened for reading: %s',
-                $info['html_url'],
-                $error['message']
-            ));
+        if (false === ($in = @ fopen($update['url'], 'rb'))) {
+            throw FileException::create($update['url']);
         }
 
         if (false === ($out = @ fopen($temp, 'wb'))) {
-            $error = error_get_last();
-
-            throw new RuntimeException(sprintf(
-                'The temporary file "%s" could not be opened for writing: %s',
-                $temp,
-                $error['message']
-            ));
+            throw FileException::create($temp);
         }
 
         while (false === feof($in)) {
-            if (false === ($buffer = @ fread($in, self::BUFFER_SIZE))) {
-                $error = error_get_last();
-
+            if (false === ($buffer = @ fread($in, $this->bufferSize))) {
                 fclose($in);
                 fclose($out);
 
-                throw new RuntimeException(sprintf(
-                    'The download file "%s" could not be read: %s',
-                    $info['html_url'],
-                    $error['message']
-                ));
+                throw FileException::create($update['url']);
             }
 
             if (false === @ fwrite($out, $buffer)) {
-                $error = error_get_last();
-
                 fclose($in);
                 fclose($out);
 
-                throw new RuntimeException(sprintf(
-                    'The temporary file "%s" could not be written: %s',
-                    $temp,
-                    $error['message']
-                ));
+                throw FileException::create($temp);
             }
         }
 
         fclose($out);
         fclose($in);
 
-        if ($this->integrity && (false === call_user_func($this->integrity, $temp))) {
-            throw new RuntimeException(sprintf(
-                'The downloaded update "%s" failed the integrity check.',
-                $temp
-            ));
+        if (($checksum = sha1_file($temp)) !== $update['sha1']) {
+            throw new FileChecksumException(
+                $update['url'],
+                $update['sha1'],
+                $temp,
+                $checksum
+            );
         }
 
         return $temp;
     }
 
     /**
-     * Returns the latest download from the list.
+     * Finds an update for the given version.
      *
-     * @param boolean $lock Lock to same major version?
+     * @param array   $updates The list of updates.
+     * @param Version $version The version.
+     * @param boolean $lock    Lock to major version?
      *
-     * @return array The latest download.
-     *
-     * @api
+     * @return array The update.
      */
-    public function getLatest($lock = null)
+    public function findUpdate(array $updates, Version $version, $lock = false)
     {
-        if (null === $lock) {
-            $lock = $this->lock;
-        }
+        $latest = null;
 
-        if ($downloads = $this->getDownloads()) {
-            if (null === $this->version) {
-                throw new LogicException('No current version is set.');
+        foreach ($updates as $update) {
+            if ($lock
+                && ($update['version']->getMajor() !== $version->getMajor())) {
+                continue;
             }
 
-            $current = null;
+            $test = $latest ? $latest['version'] : $version;
 
-            foreach ($downloads as $download) {
-                if ((null === $current)
-                    || $download['version']->isGreaterThan($current['version'])) {
-                    if ((false === $lock)
-                        || ($this->version->getMajor() == $download['version']->getMajor())) {
-                        $current = $download;
-                    }
-                }
+            if (0 >= $update['version']->compareTo($test)) {
+                $latest = $update;
             }
-
-            return $current;
         }
-    }
 
-    /** {@inheritDoc} */
-    public function getName()
-    {
-        return 'amend';
+        return $latest;
     }
 
     /**
-     * Returns the processed application version.
+     * Retrieves the manifest and returns its contents. The value of the
+     * "version" key will be converted into an instance of the Version
+     * class.
      *
-     * @return Version The application version.
+     * @return array The manifest.
      *
-     * @api
+     * @throws ManifestJsonException If there is a JSON encoding issue with the
+     *                               manifest's data.
+     * @throws ManifestReadException If there was a problem reading the manifest
+     *                               file from the URL.
      */
-    public function getVersion()
+    public function getManifest()
     {
-        return $this->version;
-    }
-
-    /**
-     * Performs a request.
-     *
-     * @param string $request The request.
-     *
-     * @return array The response data.
-     *
-     * @throws LogicException If the API URL is not set.
-     */
-    public function makeRequest($request)
-    {
-        if (null === $this->url) {
-            throw new LogicException('The API URL is not set.');
-        }
-
-        $request = $this->url . "/$request";
-
-        if (false === ($string = @ file_get_contents(
-            $request,
+        if (false === ($manifest = @ file_get_contents(
+            $this->url,
             false,
-            stream_context_create($this->context)
-        ))) {
+            $this->context
+        ))){
             $error = error_get_last();
 
-            throw new RuntimeException(sprintf(
-                'The request "%s" could not be made: %s',
-                $request,
-                $error['message']
-            ));
+            throw new ManifestReadException(
+                $this->url,
+                $error ? $error['message'] : 'Unknown reason.'
+            );
         }
 
-        if (null === ($data = json_decode($string, true))) {
-            if (JSON_ERROR_NONE === ($code = json_last_error())) {
-                throw new RuntimeException(sprintf(
-                    'The request "%s" resulted in a null response.',
-                    $request
-                ));
-            } else {
-                throw new RuntimeException(sprintf(
-                    'The request "%s" returned an invalid response [%d].',
-                    $request,
-                    $code
-                ));
-            }
+        $manifest = json_decode($manifest, true);
+
+        if (JSON_ERROR_NONE !== json_last_error()) {
+            throw new ManifestJsonException(
+                $this->url,
+                json_last_error()
+            );
         }
 
-        if (isset($data['message'])) {
-            throw new RuntimeException(sprintf(
-                'API request error for "%s": %s',
-                $request,
-                $data['message']
-            ));
+        foreach ($manifest as $i => $update) {
+            $manifest[$i]['version'] = Version::create($update['version']);
         }
 
-        return $data;
+        return $manifest;
     }
 
     /**
-     * Sets the download version extractor callable.
-     *
-     * @param callable $extract The extractor.
-     *
-     * @throws InvalidArgumentException If it is not a callable.
-     *
-     * @api
+     * @override
      */
-    public function setExtractor($extract = null)
+    public function getName()
     {
-        if ((null !== $extract) && (false === is_callable($extract))) {
-            throw new InvalidArgumentException('The extractor is not callable.');
+        return static::NAME;
+    }
+
+    /**
+     * Returns the canonical file path for the running program.
+     *
+     * @return string The canonical file path.
+     */
+    public function getRunningFile()
+    {
+        return realpath($_SERVER['argv'][0]);
+    }
+
+    /**
+     * Replaces a file with another one, preserving permissions.
+     *
+     * @param string $from The file to replace with.
+     * @param stirng $to   The file to replace.
+     *
+     * @throws FileException If the file could not be replaced, or if the
+     *                       permissions could not be preserved.
+     */
+    public function replaceFile($from, $to)
+    {
+        $perms = fileperms($to) & 511;
+
+        if (false === @ rename($from, $to)) {
+            throw FileException::create("$from -> $to");
         }
 
-        $this->extract = $extract;
-    }
-
-    /**
-     * Sets the download integrity checker callable.
-     *
-     * @param callable $integrity The integrity checker.
-     *
-     * @throws InvalidArgumentException If it is not a callable.
-     *
-     * @api
-     */
-    public function setIntegrityChecker($integrity = null)
-    {
-        if ((null !== $integrity) && (false === is_callable($integrity))) {
-            throw new InvalidArgumentException('The integrity checker is not callable.');
+        if (false === @ chmod($to, $perms)) {
+            throw FileException::create("$from -> $to");
         }
-
-        $this->integrity = $integrity;
-    }
-
-    /**
-     * Sets the major version lock state.
-     *
-     * @param boolean $lock The new state.
-     *
-     * @api
-     */
-    public function setLock($lock)
-    {
-        $this->lock = (bool) $lock;
-    }
-
-    /**
-     * Sets the download matcher callable.
-     *
-     * @param callable $match The matcher.
-     *
-     * @throws InvalidArgumentException If it is not a callable.
-     *
-     * @api
-     */
-    public function setMatcher($match = null)
-    {
-        if ((null !== $match) && (false === is_callable($match))) {
-            throw new InvalidArgumentException('The matcher is not callable.');
-        }
-
-        $this->match = $match;
-    }
-
-    /**
-     * Sets the API base URL.
-     *
-     * @param string $url The base URL.
-     *
-     * @api
-     */
-    public function setUrl($url)
-    {
-        $this->url = $url;
-    }
-
-    /**
-     * Sets the application version.
-     *
-     * @param string|Version $version The version.
-     *
-     * @api
-     */
-    public function setVersion($version)
-    {
-        if (false === ($version instanceof Version)) {
-            $version = new Version($version);
-        }
-
-        $this->version = $version;
     }
 }
-

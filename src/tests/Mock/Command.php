@@ -11,11 +11,9 @@
 
 namespace Mock;
 
-use KevinGH\Amend\Command as _Command;
+use KevinGH\Amend\Command as Base;
 
-class Command extends _Command
+class Command extends Base
 {
-    protected $extract = '/^test\-(.+?)\.phar$/';
-    protected $match = '/^test\-(.+?)\.phar$/';
 }
 

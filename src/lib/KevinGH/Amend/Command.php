@@ -11,8 +11,9 @@
 
 namespace KevinGH\Amend;
 
-use RuntimeException;
-use Symfony\Component\Console\Command\Command as _Command;
+use KevinGH\Amend\Helper;
+use KevinGH\Version\Version;
+use Symfony\Component\Console\Command\Command as Base;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -22,73 +23,55 @@ use Symfony\Component\Console\Output\OutputInterface;
  *
  * @author Kevin Herrera <me@kevingh.com>
  */
-abstract class Command extends _Command
+abstract class Command extends Base
 {
     /**
-     * The version extraction regular expression.
+     * The major version lock flag.
      *
-     * @type string
-     *
-     * @api
+     * @var boolean
      */
-    protected $extract;
+    private $lock;
 
     /**
-     * The integrity checker callable.
+     * The current application version.
      *
-     * @type callable
-     *
-     * @api
+     * @var Version
      */
-    protected $integrity;
+    private $version;
 
     /**
-     * The major version force lock flag.
+     * Sets the command name, major version lock flag, and current application
+     * version if provided. The command name is required. By default, no lock
+     * is used, and the current application version is parsed using Version.
      *
-     * @type boolean
-     *
-     * @api
+     * @param string  $name    The command name.
+     * @param boolean $lock    Lock to current major version?
+     * @param Version $version The current application version.
      */
-    protected $lock = null;
+    public function __construct(
+        $name,
+        $lock = null,
+        Version $version = null
+    ){
+        $this->lock = $lock;
+        $this->version = $version;
+
+        parent::__construct($name);
+    }
 
     /**
-     * The download matching regular expression.
-     *
-     * @type string
-     *
-     * @api
+     * @override
      */
-    protected $match;
-
-    /**
-     * The name of the temporary file.
-     *
-     * @type string
-     *
-     * @api
-     */
-    protected $rename = null;
-
-    /**
-     * The API base URL.
-     *
-     * @type string
-     *
-     * @api
-     */
-    protected $url;
-
-    /** {@inheritDoc} */
-    public function configure()
+    protected function configure()
     {
-        $this->setDescription('Updates or upgrades the application.');
+        $this->setDescription('Updates the application.');
 
         if (null === $this->lock) {
             $this->addOption(
                 'upgrade',
                 'u',
                 InputOption::VALUE_NONE,
-                'Upgrade if next major release is available.'
+                'Upgrade to next major release if available.'
             );
         }
 
@@ -100,22 +83,38 @@ abstract class Command extends _Command
         );
     }
 
-    /** {@inheritDoc} */
-    public function execute(InputInterface $input, OutputInterface $output)
+    /**
+     * @override
+     */
+    protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $helper = $this->prepare($input);
+        if (null === $this->version) {
+            $this->version = Version::create(
+                $this->getApplication()->getVersion()
+            );
+        }
 
-        if ($info = $helper->getLatest($this->lock)) {
-            $current = $helper->getVersion();
+        $helper = $this->getHelper(Helper::NAME);
+        $manifest = $helper->getManifest();
+        $update = $helper->findUpdate(
+            $manifest,
+            $this->version,
+            (null === $this->lock)
+                ? (false === $input->getOption('upgrade'))
+                : $this->lock
+        );
 
-            if ($input->getOption('redo') || $info['version']->isGreaterThan($current)) {
-                $temp = $helper->getFile($info, $this->rename);
-
-                $this->replace($temp);
-
-                $output->writeln('<info>Update successful!</info>');
-            } else {
+        if ($update) {
+            if ((false === $input->getOption('redo'))
+                && $update['version']->isEqualTo($this->version)) {
                 $output->writeln('<info>Already up-to-date.</info>');
+            } else {
+                $helper->replaceFile(
+                    $helper->downloadUpdate($update),
+                    $helper->getRunningFile()
+                );
+
+                $output->writeln('Update successful!');
             }
         } else {
             $output->writeln('<comment>No updates could be found.</comment>');
@@ -123,73 +122,4 @@ abstract class Command extends _Command
             return 1;
         }
     }
-
-    /**
-     * Prepares the helper for the actual update/upgrade process.
-     *
-     * @param InputInterface $input The input.
-     *
-     * @return Helper The prepared Amend helper.
-     *
-     * @api
-     */
-    protected function prepare(InputInterface $input)
-    {
-        $helper = $this->getHelper('amend');
-
-        if ($regex = $this->extract) {
-            $helper->setExtractor(function ($info) use ($regex) {
-                return preg_replace($regex, '\\1', $info['name']);
-            });
-        }
-
-        $helper->setIntegrityChecker($this->integrity);
-
-        $helper->setLock(false === $input->getOption('upgrade'));
-
-        if ($regex = $this->match) {
-            $helper->setMatcher(function ($info) use ($regex) {
-                return (bool) preg_match($regex, $info['name']);
-            });
-        }
-
-        $helper->setUrl($this->url);
-
-        $helper->setVersion($this->getApplication()->getVersion());
-
-        return $helper;
-    }
-
-    /**
-     * Replaces the current running program with the update.
-     *
-     * @param string $temp The path to the update file.
-     *
-     * @api
-     */
-    protected function replace($temp)
-    {
-        $self = realpath($_SERVER['argv'][0]);
-        $perms = fileperms($self) & 511;
-
-        if (false === @ rename($temp, $self)) {
-            $error = error_get_last();
-
-            throw new RuntimeException(sprintf(
-                'Unable to replace with update "%s": %s',
-                $temp,
-                $error['message']
-            ));
-        }
-
-        if (false === @ chmod($self, $perms)) {
-            $error = error_get_last();
-
-            throw new RuntimeException(sprintf(
-                'Unable to copy permissions: %s',
-                $error['message']
-            ));
-        }
-    }
 }
-
