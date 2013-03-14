@@ -1,39 +1,41 @@
 {
-    "type": "library",
     "name": "kherge/amend",
-    "description": "A Symfony Console component helper and command set for updating and upgrading applications.",
-    "homepage": "http://github.com/kherge/Amend",
+    "description": "Integrates Phar Update to Symfony Console.",
+    "keywords": ["phar", "update", "console"],
+    "homepage": "http://kherge.github.com/Amend",
     "license": "MIT",
     "authors": [
         {
             "name": "Kevin Herrera",
-            "email": "kevin@herrera.io"
+            "email": "kevin@herrera.io",
+            "homepage": "http://kevin.herrera.io"
         }
     ],
-
+    "support": {
+        "issues": "https://github.com/kherge/Amend/issues"
+    },
     "require": {
         "php": ">=5.3.3",
-        "kherge/version": "1.*"
+        "herrera-io/phar-update": "~1.0",
+        "symfony/console": "~2.1"
     },
-
     "require-dev": {
-        "kherge/runkit-test-case": "1.*",
-        "symfony/console": "2.1.*"
+        "herrera-io/box": "~1.0",
+        "herrera-io/phpunit-test-case": "1.*",
+        "phpunit/phpunit": "3.7.*"
     },
-
     "autoload": {
         "psr-0": {
-            "KevinGH\\Amend": "src/lib/"
+            "KevinGH\\Amend": "src/lib"
         }
     },
-
     "config": {
+        "bin-dir": "bin",
         "vendor-dir": "src/vendors"
     },
-
     "extra": {
         "branch-alias": {
-            "dev-master": "2.0-dev"
+            "dev-master": "3.0-dev"
         }
     }
 }

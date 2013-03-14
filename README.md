@@ -1,21 +1,43 @@
-# Amend
+Amend
+=====
 
 [![Build Status](https://secure.travis-ci.org/kherge/Amend.png?branch=master)](http://travis-ci.org/kherge/Amend)
 
-A Symfony Console component helper and command set for updating and upgrading PHAR-based console applications.
+Integrates [Phar Update](https://github.com/herrera-io/php-phar-update) to [Symfony Console](https://github.com/symfony/Console).
 
-## Installing
+Summary
+-------
 
-To install Amend, you must add it to the list of dependencies in your [`composer.json`][Composer] file.
+Uses the Phar Update library to:
 
-    $ php composer.phar require kherge/amend=2.*
+1. check for newer versions of the Phar
+1. download the Phar
+    - verify download by SHA1 checksum, and public key if available
+1. replace running Phar with downloaded update
 
-If you are not using Composer to manage your dependencies, you may use any [PSR-0][PSR-0] class loader to load Wisdom.
+Installation
+------------
 
-## Usage
+Add it to your list of Composer dependencies:
 
-Please see [the wiki][wiki] for detail usage information.
+```sh
+$ composer require kherge/amend=3.*
+```
 
-[Composer]: http://getcomposer.org/
-[PSR-0]: https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-0.md
-[wiki]: https://github.com/kherge/Amend/wiki
+Usage
+-----
+
+```php
+<?php
+
+use KevinGH\Amend\Command;
+use KevinGH\Amend\Helper;
+use Symfony\Component\Console\Application;
+
+$command = new Command('update');
+$command->setManifestUri('http://box-project.org/manifest.json');
+
+$app = new Application();
+$app->getHelperSet()->set(new Helper());
+$app->add($command);
+```
