@@ -97,9 +97,9 @@ class Command extends Base
             $this->getApplication()->getVersion(),
             $this->disableUpgrade
         )){
-            $output->writeln('<success>Update successful!</success>');
+            $output->writeln('<info>Update successful!</info>');
         } else {
-            $output->writeln('<info>Already up-to-date.</info>');
+            $output->writeln('<comment>Already up-to-date.</comment>');
         }
     }
 }
