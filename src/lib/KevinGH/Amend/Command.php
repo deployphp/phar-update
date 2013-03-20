@@ -21,7 +21,7 @@ class Command extends Base
      *
      * @var boolean
      */
-    private $disableUpgrade = true;
+    private $disableUpgrade = false;
 
     /**
      * The manifest file URI.
@@ -60,6 +60,12 @@ class Command extends Base
     {
         $this->setDescription('Updates the application.');
         $this->addOption(
+            'pre',
+            'p',
+            InputOption::VALUE_NONE,
+            'Allow pre-release updates.'
+        );
+        $this->addOption(
             'redo',
             'r',
             InputOption::VALUE_NONE,
@@ -95,7 +101,8 @@ class Command extends Base
 
         if ($manager->update(
             $this->getApplication()->getVersion(),
-            $this->disableUpgrade
+            $this->disableUpgrade ?: (false === $input->getOption('upgrade')),
+            $input->getOption('pre')
         )){
             $output->writeln('<info>Update successful!</info>');
         } else {
