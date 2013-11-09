@@ -1,7 +1,7 @@
-.*
-!.gitignore
-!.travis.yml
-composer.lock
-bin/
-coverage/
-src/vendors/
+/.idea/
+/bin/
+/coverage/
+/src/vendors/
+
+/*.iml
+/composer.lock
