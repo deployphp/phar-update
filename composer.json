@@ -2,7 +2,7 @@
     "name": "kherge/amend",
     "description": "Integrates Phar Update to Symfony Console.",
     "keywords": ["phar", "update", "console"],
-    "homepage": "http://kherge.github.com/Amend",
+    "homepage": "http://github.com/box-project/amend",
     "license": "MIT",
     "authors": [
         {
@@ -12,7 +12,8 @@
         }
     ],
     "support": {
-        "issues": "https://github.com/kherge/Amend/issues"
+        "issues": "https://github.com/box-project/amend/issues",
+        "source": "https://github.com/box-project/amend"
     },
     "require": {
         "php": ">=5.3.3",
