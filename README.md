@@ -1,6 +1,8 @@
 Phar Update
 =====
 
+[![Build Status](https://travis-ci.org/deployphp/phar-update.svg?branch=master)](https://travis-ci.org/deployphp/phar-update)
+
 Integrates [Phar Update](https://github.com/herrera-io/php-phar-update) to [Symfony Console](https://github.com/symfony/Console).
 
 Summary
