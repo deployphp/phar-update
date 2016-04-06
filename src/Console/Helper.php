@@ -1,6 +1,5 @@
 <?php
-
-namespace KevinGH\Amend;
+namespace Deployer\Component\PharUpdate\Console;
 
 use Herrera\Phar\Update\Manifest;
 use Herrera\Phar\Update\Manager;
@@ -33,10 +32,10 @@ class Helper extends Base
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function getName()
     {
-        return 'amend';
+        return 'phar-update';
     }
 }

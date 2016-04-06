@@ -1,7 +1,5 @@
-Amend
+Phar Update
 =====
-
-[![Build Status](https://secure.travis-ci.org/kherge/Amend.png?branch=master)](http://travis-ci.org/kherge/Amend)
 
 Integrates [Phar Update](https://github.com/herrera-io/php-phar-update) to [Symfony Console](https://github.com/symfony/Console).
 
@@ -21,21 +19,19 @@ Installation
 Add it to your list of Composer dependencies:
 
 ```sh
-$ composer require kherge/amend=3.*
+$ composer require deployer/phar-update
 ```
 
 Usage
 -----
 
 ```php
-<?php
-
-use KevinGH\Amend\Command;
-use KevinGH\Amend\Helper;
+use Deployer\Component\PharUpdate\Console\Command;
+use Deployer\Component\PharUpdate\Console\Helper;
 use Symfony\Component\Console\Application;
 
 $command = new Command('update');
-$command->setManifestUri('http://box-project.org/manifest.json');
+$command->setManifestUri('http://deployer.org/manifest.json');
 
 $app = new Application();
 $app->getHelperSet()->set(new Helper());

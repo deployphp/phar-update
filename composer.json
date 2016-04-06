@@ -1,42 +1,38 @@
 {
-    "name": "kherge/amend",
-    "description": "Integrates Phar Update to Symfony Console.",
-    "keywords": ["phar", "update", "console"],
-    "homepage": "http://github.com/box-project/amend",
-    "license": "MIT",
-    "authors": [
-        {
-            "name": "Kevin Herrera",
-            "email": "kevin@herrera.io",
-            "homepage": "http://kevin.herrera.io"
-        }
-    ],
-    "support": {
-        "issues": "https://github.com/box-project/amend/issues",
-        "source": "https://github.com/box-project/amend"
+  "name": "deployer/phar-update",
+  "description": "Integrates Phar Update to Symfony Console.",
+  "keywords": [
+    "phar",
+    "update",
+    "console"
+  ],
+  "homepage": "https://github.com/deployphp/phar-update",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Kevin Herrera",
+      "email": "kevin@herrera.io",
+      "homepage": "http://kevin.herrera.io"
     },
-    "require": {
-        "php": ">=5.3.3",
-        "herrera-io/phar-update": "~2.0",
-        "symfony/console": "^2.1|^3.0"
-    },
-    "require-dev": {
-        "herrera-io/box": "~1.0",
-        "herrera-io/phpunit-test-case": "1.*",
-        "phpunit/phpunit": "3.7.*"
-    },
-    "autoload": {
-        "psr-0": {
-            "KevinGH\\Amend": "src/lib"
-        }
-    },
-    "config": {
-        "bin-dir": "bin",
-        "vendor-dir": "src/vendors"
-    },
-    "extra": {
-        "branch-alias": {
-            "dev-master": "3.0-dev"
-        }
+    {
+      "name": "Anton Medvedev",
+      "email": "anton@medv.io",
+      "homepage": "http://medv.io"
     }
+  ],
+  "autoload": {
+    "psr-4": {
+      "Deployer\\Component\\PharUpdate\\": "src/"
+    }
+  },
+  "require": {
+    "php": ">=5.3.3",
+    "herrera-io/phar-update": "~2.0",
+    "symfony/console": "^2.1|^3.0"
+  },
+  "require-dev": {
+    "herrera-io/box": "~1.0",
+    "herrera-io/phpunit-test-case": "1.*",
+    "phpunit/phpunit": "3.7.*"
+  }
 }

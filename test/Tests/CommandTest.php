@@ -1,18 +1,6 @@
 <?php
-
-/* This file is part of Amend.
- *
- * (c) 2012 Kevin Herrera
- *
- * For the full copyright and license information, please
- * view the LICENSE file that was distributed with this
- * source code.
- */
-
-namespace KevinGH\Amend\Tests;
-
-use KevinGH\Amend\Command;
-use KevinGH\Amend\Helper;
+use Deployer\Component\PharUpdate\Console\Command;
+use Deployer\Component\PharUpdate\Console\Helper;
 use Herrera\Box\Box;
 use Herrera\PHPUnit\TestCase;
 use Symfony\Component\Console\Application;

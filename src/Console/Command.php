@@ -1,8 +1,6 @@
 <?php
+namespace Deployer\Component\PharUpdate\Console;
 
-namespace KevinGH\Amend;
-
-use KevinGH\Amend\Helper;
 use LogicException;
 use Symfony\Component\Console\Command\Command as Base;
 use Symfony\Component\Console\Input\InputInterface;
@@ -31,8 +29,6 @@ class Command extends Base
     private $manifestUri;
 
     /**
-     * {@inheritDoc}
-     *
      * @param string  $name    The command name.
      * @param boolean $disable Disable upgrading?
      */
@@ -54,7 +50,7 @@ class Command extends Base
     }
 
     /**
-     * @override
+     * {@inheritdoc}
      */
     protected function configure()
     {
@@ -83,7 +79,7 @@ class Command extends Base
     }
 
     /**
-     * @override
+     * {@inheritdoc}
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
@@ -95,9 +91,9 @@ class Command extends Base
 
         $output->writeln('Looking for updates...');
 
-        /** @var $amend Helper */
-        $amend = $this->getHelper('amend');
-        $manager = $amend->getManager($this->manifestUri);
+        /** @var $pharUpdate Helper */
+        $pharUpdate = $this->getHelper('phar-update');
+        $manager = $pharUpdate->getManager($this->manifestUri);
 
         if ($manager->update(
             $this->getApplication()->getVersion(),
