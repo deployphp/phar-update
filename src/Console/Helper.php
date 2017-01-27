@@ -1,8 +1,8 @@
 <?php
 namespace Deployer\Component\PharUpdate\Console;
 
-use Herrera\Phar\Update\Manifest;
-use Herrera\Phar\Update\Manager;
+use Deployer\Component\PharUpdate\Manifest;
+use Deployer\Component\PharUpdate\Manager;
 use Symfony\Component\Console\Helper\Helper as Base;
 
 /**

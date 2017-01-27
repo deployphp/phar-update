@@ -1,8 +1,7 @@
 <?php
 use Deployer\Component\PharUpdate\Console\Command;
 use Deployer\Component\PharUpdate\Console\Helper;
-use Herrera\Box\Box;
-use Herrera\PHPUnit\TestCase;
+use Deployer\Component\PHPUnit\TestCase;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Tester\CommandTester;
 
@@ -126,11 +125,12 @@ class CommandTest extends TestCase
     {
         unlink($file = $this->createFile($name));
 
-        $box = Box::create($file);
-        $box->addFromString(
+        $phar = new Phar($file);
+        $phar->addFromString(
             'index.php',
             '<?php echo ' . var_export($echo, true) . ';'
         );
+        $phar->setStub($phar->createDefaultStub('index.php'));
 
         unset($box);
 

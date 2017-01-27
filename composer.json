@@ -22,17 +22,18 @@
   ],
   "autoload": {
     "psr-4": {
-      "Deployer\\Component\\PharUpdate\\": "src/"
+      "Deployer\\Component\\PharUpdate\\": "src/",
+      "Deployer\\Component\\PHPUnit\\": "src/PHPUnit/",
+      "Deployer\\Component\\Version\\": "src/Version/"
     }
   },
   "require": {
     "php": ">=5.3.3",
-    "herrera-io/phar-update": "~2.0",
     "symfony/console": "^2.1|^3.0"
   },
   "require-dev": {
-    "herrera-io/box": "~1.0",
-    "herrera-io/phpunit-test-case": "1.*",
+    "symfony/process": "~2.1",
+    "mikey179/vfsStream": "1.1.0",
     "phpunit/phpunit": "3.7.*"
   }
 }

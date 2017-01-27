@@ -1,5 +1,5 @@
 <?php
-use Herrera\PHPUNit\TestCase;
+use Deployer\Component\PHPUnit\TestCase;
 use Deployer\Component\PharUpdate\Console\Helper;
 
 class HelperTest extends TestCase
@@ -16,7 +16,7 @@ class HelperTest extends TestCase
         file_put_contents($file, '[]');
 
         $this->assertInstanceOf(
-            'Herrera\\Phar\\Update\\Manager',
+            'Deployer\\Component\\PharUpdate\\Manager',
             $this->helper->getManager($file)
         );
     }

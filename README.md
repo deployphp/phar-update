@@ -3,8 +3,6 @@ Phar Update
 
 [![Build Status](https://travis-ci.org/deployphp/phar-update.svg?branch=master)](https://travis-ci.org/deployphp/phar-update)
 
-Integrates [Phar Update](https://github.com/herrera-io/php-phar-update) to [Symfony Console](https://github.com/symfony/Console).
-
 Summary
 -------
 
@@ -33,7 +31,7 @@ use Deployer\Component\PharUpdate\Console\Helper;
 use Symfony\Component\Console\Application;
 
 $command = new Command('update');
-$command->setManifestUri('http://deployer.org/manifest.json');
+$command->setManifestUri('https://deployer.org/manifest.json');
 
 $app = new Application();
 $app->getHelperSet()->set(new Helper());
