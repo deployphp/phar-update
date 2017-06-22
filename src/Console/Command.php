@@ -104,5 +104,8 @@ class Command extends Base
         } else {
             $output->writeln('<comment>Already up-to-date.</comment>');
         }
+
+        // Force exit to prevent warnings
+        die(0);
     }
 }
