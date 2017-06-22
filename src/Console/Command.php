@@ -100,7 +100,7 @@ class Command extends Base
             $this->disableUpgrade ?: (false === $input->getOption('upgrade')),
             $input->getOption('pre')
         )){
-            $output->writeln('<info>Update successful!</info>');
+            $output->writeln('<info>Update successful!</info>'.PHP_EOL.'<comment>You are using version '.$this->getApplication()->getVersion().'</comment>');
         } else {
             $output->writeln('<comment>Already up-to-date.</comment>');
         }
